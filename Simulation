@@ -1,0 +1,75 @@
+clc
+Disc_Volume=1.413716694*10^-3;Disc_SpecificWeight=2700;Disc_SpecificHeat=980;Disc_Mass=Disc_Volume*Disc_SpecificWeight; %disc dimensions
+BrakingDistance=75;MassVehicle=300;
+g=9.81;Crr=0.007845;Area=1;Cd=0.15;p=1.225;a=-47.37;Vi=74.1;Vf=0;
+
+%Manually Calculated%
+IntVal=12541.73757;
+%joules of work done by drag.
+
+%Equations
+%work=force*distance
+%Vf=Vi+at
+%a=(Vf^2-Vi^2)/(2*displacement)
+%displacement=t*(Vf-Vi)/2
+%displacement=Vi*t + 0.5*a*t^2
+%Braking Force= (1/3)*(Area covered by pads)*(pressure)*(Rout^3-Rin^3)
+%Drag=(0.5)*(densityofair)*(dragcoeff)*(crossarea)*(velocity^2)
+
+Kintetic_Energy_Equation=(0.5)*(MassVehicle)*((Vi)^2);
+Rolling_Friction_force=(Crr*MassVehicle);
+BallBearing_force=(0.5*0.0015*g*2.7*MassVehicle);
+Drag_force=0.5*p*Cd*Area*(Vi^2);
+Breaking_Force=14127.848;
+sum_forces=(Rolling_Friction_force+BallBearing_force+Breaking_Force);
+
+%Declaring for for loop
+Accelerations_Drag=[];Force_Drag=[];Total_Force=[];Total_Accelerations=[];Velocity=[];count=0;
+
+for i=0:0.0001:Vi
+count=count+1;
+Velocity(end+1)=i;
+Force_Drag(end+1)=(0.5*p*Cd*Area*(i^2));
+Accelerations_Drag(end+1)=(0.5*p*Cd*Area*(i^2))/MassVehicle;
+Total_Force(end+1)=(0.5*p*Cd*Area*(i^2))+sum_forces;
+Total_Accelerations(end+1)=((0.5*p*Cd*Area*(i^2))+sum_forces)/MassVehicle;
+end
+
+
+%Formatting
+Accelerations_Drag=flip(Accelerations_Drag,2);Force_Drag=flip(Force_Drag,2);Total_Accelerations=flip(Total_Accelerations,2);Total_Force=flip(Total_Force,2);Vms=flip(Velocity,2);
+%disp(Accelerations_Drag);disp(Force_Drag);disp(Total_Force);disp(Total_Accelerations);disp(Velocity);disp(count);
+
+
+%declaring for while loop
+counter=0;Accelerations=0;Time=0;T=0;x=0;Displacement=0;
+
+while 1>0
+counter=counter+1;
+Acceleration=(Total_Accelerations(counter)+Total_Accelerations(counter+1))/2;
+T=(-Vms(counter+1)+Vms(counter))/Acceleration;
+Time=Time+T;
+x=(Vms(counter)*T)+(0.5*Acceleration*(T^2));
+Displacement=Displacement+x;
+if counter==count-1
+    break
+end
+end
+%Displacement=Displacement;Time=Time;
+
+
+%Work_Drag=IntVal;
+%Work_BallBearings=(0.5*0.0015*g*2.7*MassVehicle)*Displacement;
+%Work_RollingFric=(Crr*MassVehicle)*Displacement;
+Work_Brakes=Breaking_Force*Displacement;
+Front_Discs=(1/2)*((6.5/10)*Work_Brakes)
+Back_Discs=(1/2)*((3.5/10)*Work_Brakes)
+
+TempIncreaseAv=(Work_Brakes/(Disc_SpecificHeat*4*Disc_Mass))
+TempIncreaseFront=(Front_Discs/(Disc_SpecificHeat*Disc_Mass))
+TempIncreaseBack=(Back_Discs/(Disc_SpecificHeat*Disc_Mass))
+
+
+Final_Accelration=sqrt((-Displacement+Vi*Time)/(0.5*(Time^2)));
+%Plotting
+plot(Velocity,Total_Accelerations,'k--');xlabel('Velocity (m/s)');ylabel('Acceleration (m/s2)');
